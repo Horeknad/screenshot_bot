@@ -1,10 +1,10 @@
 #Необходимые библиотеки
+import logging
 import telebot
 from telebot import types
 #Собственные файлы
 import config
 import function_bot
-
 
 #Глобальные переменные
 text_welcome = """Привет! Я - Бот для создания веб-скриншотов.
@@ -13,6 +13,12 @@ text_welcome = """Привет! Я - Бот для создания веб-ск�
 • С помощью бота вы можете проверять подозрительные ссылки. (Айпилоггеры, фишинговые веб-сайты, скримеры и т.п)
 
 • Вы также можете добавить меня в свои чаты, и я смогу проверять ссылки, которые отправляют пользователи.""" #Приветственный текст
+
+
+#logger = telebot.logger
+#telebot.logger.setLevel(logging.DEBUG) # Outputs debug messages to console.
+logging.basicConfig(filename='screenshot_bot.log', level=logging.DEBUG,
+                    format=' %(asctime)s - %(levelname)s - %(message)s')
 
 
 bot = telebot.TeleBot(config.token_tg)
@@ -50,18 +56,18 @@ def get_text_messages(message):
         all_screenshot = []
         for url in url_list:
             #Получение скриншота, времени обработки и названия страницы
-            name_path_file, time_request, title_page = function_bot.get_screenshot(url, message.from_user.id, message.date)
+            name_path_file, time_request, title_page, whois_text = function_bot.get_screenshot(url, message.from_user.id, message.date)
             try:
                 #Проверить есть ли скриншот
                 photo = open(name_path_file, 'rb')
                 photo.close()
                 #Добавить описание скриншота
-                screenshot_description = title_page + '\n\nВеб-сайт: ' + url + '\n' + time_request
+                screenshot_description = title_page + '\n\nВеб-сайт: ' + url + '\n' + time_request + '\n\n' + whois_text
                 #Добавить в список скриншотов, которые потом отправятся
                 all_screenshot.append((name_path_file, screenshot_description))
             except FileNotFoundError:
                 #Добавить описание скриншота
-                screenshot_description = name_path_file + ': \n\n' + 'Веб-сайт: ' + url + '\n' + time_request
+                screenshot_description = name_path_file + ': \n\n' + 'Веб-сайт: ' + url + '\n' + time_request + '\n\n' + whois_text
                 #Добавить в список скриншотов, которые потом отправятся
                 all_screenshot.append(('Error_connection.png', screenshot_description))
         #Если ссылок больше 10, выбрать первые 10

@@ -2,3 +2,4 @@ config.py
 chromedriver.exe
 venv
 __pycache__
+screenshot_bot.log
