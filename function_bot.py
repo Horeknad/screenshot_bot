@@ -46,7 +46,6 @@ def get_screenshot(url_user, user_id, date):
 
 
     wois_site = whois.whois(domen)
-    print(wois_site)
     whois_text = "IP: " + socket.gethostbyname(domen) + " Страна: " + wois_site.country
     if wois_site.city:
         if len(wois_site.city) > 1:
