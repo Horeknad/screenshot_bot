@@ -30,6 +30,9 @@ def get_screenshot(url_user, user_id, date):
             date: необработанная дата от telegram
         Результат выполнения:
             name_path_file: путь к полученному скриншоту
+            time_request: время работы функции в секундах
+            title_page: заголовок сайта
+            whois_text: whois сайта: IP, страна, город, организация, провайдер
     """
     start_time = time.time()
 
