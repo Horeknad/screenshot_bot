@@ -25,3 +25,5 @@ Telegram bot sends screenshots via the requested link
 <br/>`deactivate`
 
 Нужно установить все необходимые библиотеки командой: `pip install -r requirements.txt`
+
+Запустить бот можно при помощи команды: `python bot.py`
