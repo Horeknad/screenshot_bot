@@ -46,19 +46,24 @@ def get_screenshot(url_user, user_id, date):
 
 
     wois_site = whois.whois(domen)
-    whois_text = "IP: " + socket.gethostbyname(domen) + " Страна: " + wois_site.country
-    if wois_site.city:
-        if len(wois_site.city) > 1:
-            whois_text += " Город: " + wois_site.city[0]
-        else:
-            whois_text += " Город: " + wois_site.city
-    if wois_site.name:
-        if len(wois_site.name) > 1:
-            whois_text += " Провайдер: " + wois_site.name[0]
-        else:
-            whois_text += " Провайдер: " + wois_site.name
-    if wois_site.org:
-        whois_text += " Организация: " + wois_site.org
+    whois_text = "IP: " + socket.gethostbyname(domen)
+    if "country" in wois_site:
+        whois_text += " Страна: " + wois_site.country
+    if "city" in wois_site:
+        if wois_site.city:
+            if len(wois_site.city) > 1:
+                whois_text += " Город: " + wois_site.city[0]
+            else:
+                whois_text += " Город: " + wois_site.city
+    if "name" in wois_site:
+        if wois_site.name:
+            if len(wois_site.name) > 1:
+                whois_text += " Провайдер: " + wois_site.name[0]
+            else:
+                whois_text += " Провайдер: " + wois_site.name
+    if "org" in wois_site:
+        if wois_site.org:
+            whois_text += " Организация: " + wois_site.org
     
     
     try:
