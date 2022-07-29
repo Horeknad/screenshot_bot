@@ -24,7 +24,7 @@ def start(message):
     Параметры:
             message: сообщение пользователя (API)
         Результат выполнения:
-            отпарвка приветственного сообщения
+            отправка приветственного сообщения
     """
     markup = types.InlineKeyboardMarkup()
     switch_button = types.InlineKeyboardButton(text='Добавить бота в групповой чат', switch_inline_query="Telegram")
@@ -34,22 +34,40 @@ def start(message):
 
 @bot.message_handler(content_types=['text'])
 def get_text_messages(message):
+    """Функция реагирует на любые сообщения пользователя, и если в них есть ссылка, присылает скриншот страницы.
+    Параметры:
+            message: сообщение пользователя (API)
+        Результат выполнения:
+            присылает скриншот/ы и описание стриншота/ов, если в сообщение нет ссылок, присылает оповещение об этом
+    """
+    #Отправка сообщения о получении запроса
     bot.send_message(message.chat.id, 'Запрос отправлен на сайт.')
+    
+    #Получение всех ссылок в тексте
     url_list = function_bot.search_url(message.text)
+    
     if url_list:
         all_screenshot = []
         for url in url_list:
+            #Получение скриншота, времени обработки и названия страницы
             name_path_file, time_request, title_page = function_bot.get_screenshot(url, message.from_user.id, message.date)
             try:
+                #Проверить есть ли скриншот
                 photo = open(name_path_file, 'rb')
-                screenshot_description = title_page + '\n\nВеб-сайт: ' + url + '\n' + time_request
-                all_screenshot.append((name_path_file, screenshot_description))
                 photo.close()
+                #Добавить описание скриншота
+                screenshot_description = title_page + '\n\nВеб-сайт: ' + url + '\n' + time_request
+                #Добавить в список скриншотов, которые потом отправятся
+                all_screenshot.append((name_path_file, screenshot_description))
             except FileNotFoundError:
+                #Добавить описание скриншота
                 screenshot_description = name_path_file + ': \n\n' + 'Веб-сайт: ' + url + '\n' + time_request
+                #Добавить в список скриншотов, которые потом отправятся
                 all_screenshot.append(('Error_connection.png', screenshot_description))
+        #Если ссылок больше 10, выбрать первые 10
         if len(all_screenshot) > 10:
-            all_screenshot[0:11]
+            all_screenshot[0:10]
+        #Отправка всех скриншотов в одном сообщении
         bot.send_media_group(
             chat_id=message.chat.id, 
             media=[types.InputMediaPhoto(open(photo[0], 'rb'), caption=photo[1]) for photo in all_screenshot]
