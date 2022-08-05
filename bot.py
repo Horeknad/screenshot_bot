@@ -1,5 +1,6 @@
 #Необходимые библиотеки
 import logging
+from selenium import webdriver
 import telebot
 from telebot import types
 #Собственные файлы
@@ -53,26 +54,11 @@ def get_text_messages(message):
     url_list = function_bot.search_url(message.text)
     
     if url_list:
-        all_screenshot = []
-        for url in url_list:
-            #Получение скриншота, времени обработки и названия страницы
-            name_path_file, time_request, title_page, whois_text = function_bot.get_screenshot(url, message.from_user.id, message.date)
-            try:
-                #Проверить есть ли скриншот
-                photo = open(name_path_file, 'rb')
-                photo.close()
-                #Добавить описание скриншота
-                screenshot_description = title_page + '\n\nВеб-сайт: ' + url + '\n' + time_request + '\n\n' + whois_text
-                #Добавить в список скриншотов, которые потом отправятся
-                all_screenshot.append((name_path_file, screenshot_description))
-            except FileNotFoundError:
-                #Добавить описание скриншота
-                screenshot_description = name_path_file + ': \n\n' + 'Веб-сайт: ' + url + '\n' + time_request + '\n\n' + whois_text
-                #Добавить в список скриншотов, которые потом отправятся
-                all_screenshot.append(('Error_connection.png', screenshot_description))
         #Если ссылок больше 10, выбрать первые 10
-        if len(all_screenshot) > 10:
-            all_screenshot[0:10]
+        if len(url_list) > 10:
+            url_list = url_list[0:10]
+        #Список пути и описания скриншотов
+        all_screenshot = function_bot.get_description_screenshot(url_list, message.from_user.id, message.date)
         #Отправка всех скриншотов в одном сообщении
         bot.send_media_group(
             chat_id=message.chat.id, 
