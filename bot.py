@@ -1,6 +1,7 @@
 #Необходимые библиотеки
 import logging
 from selenium import webdriver
+from selenium.webdriver import ChromeOptions
 import telebot
 from telebot import types
 #Собственные файлы
@@ -24,6 +25,10 @@ logging.basicConfig(filename='screenshot_bot.log', level=logging.DEBUG,
 
 bot = telebot.TeleBot(config.token_tg)
 
+#Фоновая настройка ChromeDriver
+options = ChromeOptions() 
+options.headless = True
+
 
 @bot.message_handler(commands=['start'])
 def start(message):
@@ -40,10 +45,11 @@ def start(message):
 
 
 @bot.message_handler(content_types=['text'])
-def get_text_messages(message):
+def get_text_messages(message, options=options):
     """Функция реагирует на любые сообщения пользователя, и если в них есть ссылка, присылает скриншот страницы.
     Параметры:
             message: сообщение пользователя (API)
+            options: настройка ChromeDriver
         Результат выполнения:
             присылает скриншот/ы и описание стриншота/ов, если в сообщение нет ссылок, присылает оповещение об этом
     """
@@ -58,7 +64,7 @@ def get_text_messages(message):
         if len(url_list) > 10:
             url_list = url_list[0:10]
         #Список пути и описания скриншотов
-        all_screenshot = function_bot.get_description_screenshot(url_list, message.from_user.id, message.date)
+        all_screenshot = function_bot.get_description_screenshot(url_list, message.from_user.id, message.date, options)
         #Отправка всех скриншотов в одном сообщении
         bot.send_media_group(
             chat_id=message.chat.id, 

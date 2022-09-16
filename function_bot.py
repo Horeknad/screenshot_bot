@@ -92,13 +92,14 @@ def get_screenshot(driver, url_user, name_path_file):
     return name_path_file, title_page
 
 
-def get_description_screenshot(list_urls_user, user_id, date):
+def get_description_screenshot(list_urls_user, user_id, date, options):
     """
     Функция для получения скриншота и его данных.
     Параметры:
             list_urls_user: все ссылки, присланные пользователем
             user_id: id пользователя в telegram
             date: необработанная дата от telegram
+            options: настройка ChromeDriver
         Результат выполнения:
             list_description_screenshot: лист кортежей пути и описания скриншотов: [(путь, описание)]
     """
@@ -108,8 +109,8 @@ def get_description_screenshot(list_urls_user, user_id, date):
     #Конвертация даты в читабельный вид
     chat_time = lambda x: time.strftime("%d.%m.%Y", time.localtime(x))
 
-    #Подключение драйвера selenium
-    driver = webdriver.Chrome(config.DRIVER)
+    #Подключение драйвера selenium 
+    driver = webdriver.Chrome(chrome_options=options)
     
     for url_user in list_urls_user:
         start_time = time.time()
