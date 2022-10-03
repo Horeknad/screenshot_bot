@@ -1,43 +1,60 @@
-#Необходимые библиотеки
+# Необходимые библиотеки
 import re
 from selenium import webdriver
 from selenium.common.exceptions import InvalidArgumentException, WebDriverException
 import socket
 import time
 import whois
-#Собственные файлы
+# Собственные файлы
 import config
 
+
 def search_url(text):
-    """
-    Функция для определения ссылок в сообщение от пользователя.
+    """Функция для определения ссылок в сообщение от пользователя.
+
     Параметры:
             text: сообщение пользователя
-        Результат выполнения:
+    Результат выполнения:
             list всех найденных ссылок
+
     """
     regex = r"(?P<domain>\S+\.\w{1,3}\S+)"
     matches = re.finditer(regex, text, re.MULTILINE)
     return [url[0] for url in matches]
 
 
-def get_domen(url_user):
+def convert_date(date_tg):
+    """Функция для преобразования даты.
+
+    Параметры:
+            date_tg: дата из телеграм
+    Результат выполнения:
+            конвертированная дата
+
     """
-    Функция для получения домена.
+    return time.strftime("%d.%m.%Y", time.localtime(date_tg))
+
+
+def get_domen(url_user):
+    """Функция для получения домена.
+
     Параметры:
             url_user: ссылка от пользователя
-        Результат выполнения:
+    Результат выполнения:
             домен сайта
+
     """
     return url_user.split("//")[-1].split("/")[0]
 
+
 def get_whois(domen):
-    """
-    Функция для получения whois.
+    """Функция для получения whois.
+
     Параметры:
             domen: домен сайта
-        Результат выполнения:
+    Результат выполнения:
             whois_text: IP, при наличии: страна, город, провайдер, оргазнизация
+
     """
     wois_site = whois.whois(domen)
     whois_text = "IP: " + socket.gethostbyname(domen)
@@ -63,29 +80,30 @@ def get_whois(domen):
 
 
 def get_screenshot(driver, url_user, name_path_file):
-    """
-    Функция для получения скриншота и заголовка сайта.
+    """ Функция для получения скриншота и заголовка сайта.
+
     Параметры:
             driver: запущенный chromedriver для selenium
             url_user: ссылка от пользователя
             name_path_file: путь и формат сохранения скриншота
-        Результат выполнения:
+    Результат выполнения:
             name_path_file: путь и формат сохранённого скриншота
             title_page: заголовок сайта
+
     """
     try:
-        #Получение скриншота и заголовка
+        # Получение скриншота и заголовка
         driver.get(url_user)
         title_page = driver.title
         driver.save_screenshot(name_path_file)
     except InvalidArgumentException:
         url_user = 'http://' + url_user
         try:
-            #Получение скриншота и заголовка
+            # Получение скриншота и заголовка
             driver.get(url_user)
             title_page = driver.title
             driver.save_screenshot(name_path_file)
-        except:
+        except Exception:
             return 'Error_connection.png', None
     except WebDriverException:
         return 'Error_connection.png', None
@@ -93,48 +111,47 @@ def get_screenshot(driver, url_user, name_path_file):
 
 
 def get_description_screenshot(list_urls_user, user_id, date, options):
-    """
-    Функция для получения скриншота и его данных.
+    """Функция для получения скриншота и его данных.
+
     Параметры:
             list_urls_user: все ссылки, присланные пользователем
             user_id: id пользователя в telegram
             date: необработанная дата от telegram
             options: настройка ChromeDriver
-        Результат выполнения:
+    Результат выполнения:
             list_description_screenshot: лист кортежей пути и описания скриншотов: [(путь, описание)]
+
     """
-    
+
     list_description_screenshot = []
 
-    #Конвертация даты в читабельный вид
-    chat_time = lambda x: time.strftime("%d.%m.%Y", time.localtime(x))
-
-    #Подключение драйвера selenium 
+    # Подключение драйвера selenium
     driver = webdriver.Chrome(chrome_options=options)
-    
+
     for url_user in list_urls_user:
         start_time = time.time()
-        #Получение домена
+        # Получение домена
         domen = get_domen(url_user)
-        #Получение whois
+        # Получение whois
         whois_text = get_whois(domen)
-        #Путь к сохранению файла
-        name_path_file = config.MEDIA_FILE + chat_time(date) + '_' + str(user_id) + '_' + domen + '_' +  '.png'
-        #Путь к скриншоту и заголовок сайта
+        # Путь к сохранению файла
+        name_path_file = config.MEDIA_FILE + convert_date(date) + '_' \
+            + str(user_id) + '_' + domen + '.png'
+        # Путь к скриншоту и заголовок сайта
         name_path_file, title_page = get_screenshot(driver, url_user, name_path_file)
-        #Время обработки страницы
+        # Время обработки страницы
         time_request = "Время обработки: %.0f сек." % (time.time() - start_time)
-        #Составление описания скриншота
+        # Составление описания скриншота
         if title_page:
-            screenshot_description = title_page + '\n\nВеб-сайт: ' + url_user + '\n' + time_request + '\n\n' + whois_text
+            screenshot_description = title_page + '\n\nВеб-сайт: ' + url_user \
+                + '\n' + time_request + '\n\n' + whois_text
         else:
-            screenshot_description = 'Не удалось открыть страницу: \n\nВеб-сайт: ' + url_user + '\n' + time_request + '\n\n' + whois_text
-        #Добавление в список скриншотов, которые надо отправить
+            screenshot_description = 'Не удалось открыть страницу: \n\nВеб-сайт: ' + url_user \
+                + '\n' + time_request + '\n\n' + whois_text
+        # Добавление в список скриншотов, которые надо отправить
         list_description_screenshot.append((name_path_file, screenshot_description))
-    
-    #Закрытие браузера
+
+    # Закрытие браузера
     driver.quit()
 
     return list_description_screenshot
-
-
